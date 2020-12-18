@@ -1,7 +1,37 @@
 import usuario from '../models/usuarios'
 import bcrypt from 'bcryptjs'
+import token from '../services/token'
 
 export default{
+    login: async (req,res,next) =>{
+        try{
+            let user = await usuario.findOne({username: req.body.username, estado: 1 })
+            if(!user){
+                res.status(404).send({
+                    //por seguridad no damos indicios que el usuario no existe
+                    message:'Usuario y/o clave invalidos'
+                })
+            }
+
+            let password = await bcrypt.compare(req.body.password,user.password)
+
+            if(!password){
+                res.status(404).send({
+                    message:'Usuario y/o clave invalidos'
+                })
+            }
+            let tokenUser = await token.encode(user._id)
+
+            res.status(200).json({...user,token:tokenUser})
+
+        }catch(error){
+            res.status(500).send({
+                message: 'Error al loguearse.'
+            })
+            next(error)
+        }
+        
+    },
     add:async (req,res,next) =>{
         try{
             req.body.password = await bcrypt.hash(req.body.password,10)

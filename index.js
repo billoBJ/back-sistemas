@@ -3,9 +3,13 @@ import morgan from 'morgan'
 import cors from 'cors'
 import path from 'path'
 import mongoose from 'mongoose'
+const dotEnv = require('dotenv');
 // instalar dotoenv 
 
 import router from './routes'
+
+//set env variables
+dotEnv.config();
 
 // conexion a la DB 
 //mejorar 
