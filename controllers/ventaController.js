@@ -1,33 +1,33 @@
-import ingresos from '../models/ingreso'
+import ventas from '../models/venta'
 import articulos from '../models/articulos'
 
 async function aumentarStock(articuloID, cantidad){
-    let { stock } = await articulos.findOne({_id: articuloID })
+    let { stock } = await ventas.findOne({_id: articuloID })
     let newStock = parseInt( stock) + parseInt( cantidad)
 
-    const registro = await articulos.findByIdAndUpdate({_id: articuloID}, {stock: newStock })
+    const registro = await ventas.findByIdAndUpdate({_id: articuloID}, {stock: newStock })
 }
 
 async function restarStock(articuloID, cantidad){
     //a Mejorar: revisar que al disminuir el stock no quede negativo.
-    let { stock } = await articulos.findOne({_id: articuloID })
+    let { stock } = await ventas.findOne({_id: articuloID })
     let newStock = parseInt( stock) - parseInt( cantidad)
 
-    const registro = await articulos.findByIdAndUpdate({_id: articuloID}, {stock: newStock })
+    const registro = await ventas.findByIdAndUpdate({_id: articuloID}, {stock: newStock })
 }
 
 export default{
     add:async (req,res,next) =>{
         try{
-            const ingreso = await ingresos.create(req.body)
+            const venta = await ventas.create(req.body)
             //actualizo el stock
             let detalles = req.body.detalles
 
             detalles.map(function(det){
-                aumentarStock(det._id, det.cantidad )
+                restarStock(det._id, det.cantidad )
             })
 
-            res.status(200).json(ingreso)
+            res.status(200).json(venta)
 
         }catch(error){
             res.status(500).send({
@@ -38,13 +38,13 @@ export default{
     },
     query:async (req,res,next) =>{
         try{
-            const ingresos = await (await ingresos.findOne({ _id: req.query._id })).populate('usuario',{nombre:1}).populate('persona',{nombre:1})
-            if(!ingresos){
+            const venta = await (await ventas.findOne({ _id: req.query._id })).populate('usuario',{nombre:1}).populate('persona',{nombre:1})
+            if(!venta){
                 res.status(404).send({
                     message:'El registro no existe'
                 })
             }else{
-                res.status(200).json(ingresos)
+                res.status(200).json(venta)
             }
 
         }catch(error){
@@ -58,31 +58,13 @@ export default{
         try{
             let valor = req.query.valor
             // "i" establece que la busqueda tome coincidencias entre mayusculas y minusculas
-            const ingreso = await ingresos.find($or[{numero_comprobante : new RegExp(valor, 'i')},{serie_comprobante : new RegExp(valor, 'i')}],{updatedAt:0})
+            const venta = await ventas.find($or[{numero_comprobante : new RegExp(valor, 'i')},{serie_comprobante : new RegExp(valor, 'i')}],{updatedAt:0})
             .sort({nombre: 1 })
             .populate('usuario',{nombre:1})
             .populate('persona',{nombre:1})
 
-            res.status(200).json(ingreso)
+            res.status(200).json(venta)
 
-        }catch(error){
-            res.status(500).send({
-                message:'Ocurrio un error'
-            })
-            next(error)
-        }
-    },
-    activate:async (req,res,next) =>{
-        try{
-            const ingreso = await ingresos.findByIdAndUpdate({_id: req.body._id},{estado: 1}) 
-            //actualizo el stock
-            let detalles = ingreso.detalles
-            detalles.map(function(det){
-                aumentarStock(det._id, det.cantidad )
-            })
-
-
-            res.status(200).json(ingreso)
         }catch(error){
             res.status(500).send({
                 message:'Ocurrio un error'
@@ -92,17 +74,17 @@ export default{
     },
     desactivate:async (req,res,next) =>{
         try{
-            const ingreso = await ingresos.findByIdAndUpdate({_id: req.body._id},{estado: 0}) 
+            const venta = await ventas.findByIdAndUpdate({_id: req.body._id},{estado: 0}) 
             //Restamos el error
-            let detalle = ingreso.detalles
+            let detalle = venta.detalles
             detalle.map(function(det){
-                restarStock(det._id, det.cantidad )
+                aumentarStock(det._id, det.cantidad )
             })
 
 
 
 
-            res.status(200).json(ingreso)
+            res.status(200).json(venta)
 
         }catch(error){
             res.status(500).send({
