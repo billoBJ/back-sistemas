@@ -35,6 +35,26 @@ export default{
             next(error)
         }
     },
+    queryBarCode:async (req,res,next) =>{
+        try{
+            const art = await articulos.findOne({ codigo: req.query.codigo })
+            .populate('categorias',{nombre:1})
+
+            if(!art){
+                res.status(404).send({
+                    message:'El registro no existe'
+                })
+            }else{
+                res.status(200).json(art)
+            }
+
+        }catch(error){
+            res.status(500).send({
+                message:'Ocurrio un error'
+            })
+            next(error)
+        }
+    },
     list:async (req,res,next) =>{
         try{
             let valor = req.query.valor
