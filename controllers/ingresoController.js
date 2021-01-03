@@ -145,5 +145,25 @@ export default{
             })
             next(error)
         }
-    }
+    },
+    listByDate:async (req,res,next) =>{
+        try{
+            let start = req.query.start
+            let end = req.query.end
+
+            // "i" establece que la busqueda tome coincidencias entre mayusculas y minusculas
+            const ingreso = await ingresos.find({"createdAt": { "$gte": start , "$lt": end}})
+            .sort({nombre: 1 })
+            .populate('usuario',{nombre:1})
+            .populate('persona',{nombre:1})
+
+            res.status(200).json(ingreso)
+
+        }catch(error){
+            res.status(500).send({
+                message:'Ocurrio un error'
+            })
+            next(error)
+        }
+    },
 }

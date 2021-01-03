@@ -10,5 +10,6 @@ router.get('/list',auth.verifyVendedor, ingresoController.list )
 router.put('/activate',auth.verifyVendedor, ingresoController.activate)
 router.put('/deactivate',auth.verifyVendedor, ingresoController.desactivate)
 router.get('/estadisticas',auth.verifyUser, ingresoController.graficos12meses )
+router.get('/listbydates',auth.verifyUser, ingresoController.listByDate )
 
 export default router
