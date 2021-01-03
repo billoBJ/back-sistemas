@@ -93,4 +93,39 @@ export default{
             next(error)
         }
     },
+    graficos12meses:async(req,res,next) => {
+        try{
+            const venta = await ventas.aggregate(
+                [
+                    {
+                        $group:{
+                            _id: {
+                                mes:{$month: 'ceatedAt' },
+                                year:{$year: 'ceatedAt' }
+                            },
+                            total:{
+                                $sum:'$total',
+                            },
+                            numero:{
+                                $sum:1
+                            }
+                        }
+                    },
+                    {
+                        sort:{
+                            "_id.year":-1,
+                            "_id.mes":-1
+                        }
+                    }
+                ]
+            ).limit(12)
+
+            res.status(200).json(venta);
+        }catch(error){
+            res.status(500).send({
+                message:'Ocurrio un error'
+            })
+            next(error)
+        }
+    }
 }
